@@ -1141,7 +1141,7 @@ function submitQuestionnaire() {
 
 // ---- Debrief ----
 function renderDebrief() {
-  var code = 'SCAM-VAL-' + generateCode();
+  var code = 'SCAM-VAL-2026';
   var mins = Math.round((Date.now() - state.startTime) / 60000);
 
   app.innerHTML =
@@ -1217,12 +1217,13 @@ function submitData() {
   } catch (e) {}
 
   // POST to API if configured
-  var API_URL = 'https://script.google.com/macros/s/AKfycbycym9mf0lR5iRl_x7B1NdCDt9xG9R8CRFXGib3LeJB03nYTSlpMZasbYM37k5PRnBaGw/exec';
+  var API_URL = window.SCAM_VALIDATION_API_URL || 'https://script.google.com/macros/s/AKfycbwlSljJwN9tywi5Ct68OUe_MiboDG13CSlFpp0_Y186zygShoh0jTgmyR9XiY0r-V-Qxw/exec';
   if (API_URL) {
     fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'data=' + encodeURIComponent(JSON.stringify(payload))
     }).catch(function(err) { console.error('Submit failed:', err); });
   }
 
