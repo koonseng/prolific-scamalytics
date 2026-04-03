@@ -1217,9 +1217,9 @@ function submitData() {
   } catch (e) {}
 
   // POST to API if configured
-  var API_URL = window.SCAM_VALIDATION_API_URL || '';
+  var API_URL = 'https://script.google.com/macros/s/AKfycbycym9mf0lR5iRl_x7B1NdCDt9xG9R8CRFXGib3LeJB03nYTSlpMZasbYM37k5PRnBaGw/exec';
   if (API_URL) {
-    fetch('https://script.google.com/macros/s/AKfycbycym9mf0lR5iRl_x7B1NdCDt9xG9R8CRFXGib3LeJB03nYTSlpMZasbYM37k5PRnBaGw/exec', {
+    fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
