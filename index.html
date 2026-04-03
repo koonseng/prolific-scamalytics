@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Messaging Study</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f5; color: #333; line-height: 1.6;
+  }
+  .container {
+    max-width: 720px; margin: 40px auto; padding: 32px;
+    background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 16px; color: #1a1a1a; }
+  h2 { font-size: 1.2rem; margin-bottom: 12px; color: #1a1a1a; }
+  p, li { margin-bottom: 12px; }
+  ul { padding-left: 20px; }
+  .sentence-box {
+    background: #f8f9fa; border: 1px solid #dee2e6; padding: 18px 20px;
+    margin: 10px 0; border-radius: 8px; font-size: 1.05rem;
+  }
+  .sentence-box .label {
+    font-weight: 700; color: #2563eb; font-size: 0.9rem;
+    margin-bottom: 6px; display: block;
+  }
+  .sentence-box .text { font-style: italic; }
+  .radio-group { margin: 16px 0; }
+  .radio-group label {
+    display: block; padding: 10px 16px; margin: 6px 0;
+    border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .radio-group label:hover { border-color: #2563eb; background: #f0f7ff; }
+  .radio-group input[type="radio"] { margin-right: 10px; }
+  .radio-group label:has(input:checked) {
+    border-color: #2563eb; background: #eff6ff;
+  }
+  .checkbox-group { margin: 16px 0; }
+  .checkbox-group label {
+    display: block; padding: 8px 16px; margin: 4px 0; cursor: pointer;
+  }
+  .checkbox-group input[type="checkbox"] { margin-right: 10px; }
+  input[type="text"] {
+    width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0;
+    border-radius: 8px; font-size: 1rem; margin-top: 8px;
+  }
+  input[type="text"]:focus { outline: none; border-color: #2563eb; }
+  .btn {
+    display: inline-block; padding: 12px 32px; background: #2563eb;
+    color: #fff; border: none; border-radius: 8px; font-size: 1rem;
+    cursor: pointer; transition: background 0.15s; margin-top: 20px;
+  }
+  .btn:hover { background: #1d4ed8; }
+  .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+  .progress-bar {
+    width: 100%; height: 6px; background: #e0e0e0; border-radius: 3px;
+    margin-bottom: 24px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: #2563eb; border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  .hidden { display: none; }
+  .warning {
+    background: #fef3c7; border: 1px solid #f59e0b; padding: 12px;
+    border-radius: 8px; margin: 12px 0; font-size: 0.9rem;
+  }
+  .completion-code {
+    background: #ecfdf5; border: 2px solid #10b981; padding: 20px;
+    border-radius: 8px; text-align: center; font-size: 1.3rem;
+    font-weight: 700; margin: 20px 0; letter-spacing: 2px;
+  }
+  .resource-list { margin: 16px 0; }
+  .resource-list li { margin: 8px 0; }
+  .page-counter {
+    text-align: right; font-size: 0.85rem; color: #6b7280; margin-bottom: 8px;
+  }
+  .likert-row {
+    display: flex; justify-content: space-between; margin: 12px 0; gap: 8px;
+  }
+  .likert-row label {
+    text-align: center; cursor: pointer; padding: 8px 6px;
+    border: 2px solid #e0e0e0; border-radius: 8px; flex: 1;
+    transition: all 0.15s; font-size: 0.9rem;
+  }
+  .likert-row label:hover { border-color: #2563eb; background: #f0f7ff; }
+  .likert-row label:has(input:checked) {
+    border-color: #2563eb; background: #eff6ff;
+  }
+  .likert-row input[type="radio"] { display: block; margin: 0 auto 4px; }
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<div class="container" id="app"></div>
+
+<script>
+// ============================================================
+// DATA — embedded at build time
+// ============================================================
+const REAL_SENTENCES = [
+  {
+    "id": "R01",
+    "text": "I am new on that site and I am very happy to know that you are the first person to talk to me from the site.",
+    "source": "scam1.txt",
+    "phase": "opening",
+    "original_line": 5
+  },
+  {
+    "id": "R02",
+    "text": "I came across your adorable profile and i stop to say hi hope you don't mind?",
+    "source": "scam12.txt",
+    "phase": "opening",
+    "original_line": 14
+  },
+  {
+    "id": "R03",
+    "text": "Hello my name is [Name] i am a Combat Engineer currently on deployement at [City] under the Command of the UNITED STATE OF ARMERICAN.",
+    "source": "scam7.txt",
+    "phase": "opening",
+    "original_line": 157
+  },
+  {
+    "id": "R04",
+    "text": "I originated from the USA in [City], currently living in [City] in UK, I will be willing to relocate if i can find a right man of my dream.",
+    "source": "scam1.txt",
+    "phase": "opening",
+    "original_line": 5
+  },
+  {
+    "id": "R05",
+    "text": "Am [Name] how you doing today? Am contacting you regarding the backpage Ad. Are you still interested in the Job?",
+    "source": "scam8.txt",
+    "phase": "opening",
+    "original_line": 1
+  },
+  {
+    "id": "R06",
+    "text": "Hey thanks for reading my profile! I like dancing, swimming, camping, fishing, cuddling, like playing golf and taking a long walk in a warm summer.",
+    "source": "scam12.txt",
+    "phase": "opening",
+    "original_line": 24
+  },
+  {
+    "id": "R07",
+    "text": "I'm an Oil Drilling Contractor and I work Offshore with [Company] here at the Atlantis Deep Water Oil and Gas platform.",
+    "source": "scam11.txt",
+    "phase": "opening",
+    "original_line": 1
+  },
+  {
+    "id": "R08",
+    "text": "I am a sexy, loyal, devoted and most of all God fearing lady who's looking for the same man to spend the rest of my life with.",
+    "source": "scam1.txt",
+    "phase": "opening",
+    "original_line": 7
+  },
+  {
+    "id": "R09",
+    "text": "I lost my Dad 15yrs ago. He was a nice father and brother to me, My dad was a successful business man before he die.",
+    "source": "scam7.txt",
+    "phase": "opening",
+    "original_line": 215
+  },
+  {
+    "id": "R10",
+    "text": "I am a fun loving, caring and gentle Man, with a great big heart. I am generally a little bit on the quiet/shy side.",
+    "source": "scam7.txt",
+    "phase": "opening",
+    "original_line": 183
+  },
+  {
+    "id": "R11",
+    "text": "I believe also that our meeting is not by accident or by chance but it was predestined to happen so that we would be able to discover about ourselves.",
+    "source": "scam11.txt",
+    "phase": "rapport",
+    "original_line": 7
+  },
+  {
+    "id": "R12",
+    "text": "I like watching stormy weather, going to educational lectures, beaches, watching movies, musical concerts and sometime go for dinner and taste a little coffee.",
+    "source": "scam1.txt",
+    "phase": "rapport",
+    "original_line": 67
+  },
+  {
+    "id": "R13",
+    "text": "I think at this point we definetly have a friendship formed based on some external and internal similarities that are developing into a relationship.",
+    "source": "scam1.txt",
+    "phase": "rapport",
+    "original_line": 73
+  },
+  {
+    "id": "R14",
+    "text": "I keep thinking about the future, about life, and what I want out of it. I keep thinking about us and what this relationship means to me.",
+    "source": "scam5.txt",
+    "phase": "rapport",
+    "original_line": 87
+  },
+  {
+    "id": "R15",
+    "text": "You seemed cool, nice and funny some things I really liked in a guy. So I took a chance and got with you.",
+    "source": "scam3.txt",
+    "phase": "rapport",
+    "original_line": 201
+  },
+  {
+    "id": "R16",
+    "text": "i believe life without love is like an harp without string, everyone need love, and i think i deserve a good woman.",
+    "source": "scam7.txt",
+    "phase": "rapport",
+    "original_line": 217
+  },
+  {
+    "id": "R17",
+    "text": "I love the way you love me. I want to evoke such a passion within you that leaves us both breathless.",
+    "source": "scam5.txt",
+    "phase": "rapport",
+    "original_line": 117
+  },
+  {
+    "id": "R18",
+    "text": "Since the first day i read from you I felt I was living in a new and wonderful world, full of love. And the sun is brighter, the pastures became greener.",
+    "source": "scam3.txt",
+    "phase": "rapport",
+    "original_line": 179
+  },
+  {
+    "id": "R19",
+    "text": "I want someone who is happy with her life, someone who is willing to share Her lives with me and I can share my life with her and together we will be happy forever.",
+    "source": "scam11.txt",
+    "phase": "rapport",
+    "original_line": 7
+  },
+  {
+    "id": "R20",
+    "text": "i love to walk along the beach with my woman holding hands seeing the breeze and talking romantic stories and also watching the sunset together.",
+    "source": "scam7.txt",
+    "phase": "rapport",
+    "original_line": 217
+  },
+  {
+    "id": "R21",
+    "text": "I love you from the moon and back. You are the queen of my heart and i promise to make you the happiest woman in the world.",
+    "source": "scam5.txt",
+    "phase": "love_bombing",
+    "original_line": 87
+  },
+  {
+    "id": "R22",
+    "text": "Baby, destiny has given us our sentence leaving you and me at the mercy of our luck. We're lovers; we're friends; we're two love birds, and we're soul mates.",
+    "source": "scam1.txt",
+    "phase": "love_bombing",
+    "original_line": 145
+  },
+  {
+    "id": "R23",
+    "text": "I feel as if I'm walking over clouds just thinking about you. You make my life complete.",
+    "source": "scam5.txt",
+    "phase": "love_bombing",
+    "original_line": 139
+  },
+  {
+    "id": "R24",
+    "text": "Words cannot express how much your friendship means to me. You always seem to know just what to say and I really appreciate that.",
+    "source": "scam3.txt",
+    "phase": "love_bombing",
+    "original_line": 5
+  },
+  {
+    "id": "R25",
+    "text": "I want to fall asleep every night with me in your arms. I want to fall asleep on your chest listening to the beat of your heart and know it beats for me.",
+    "source": "scam1.txt",
+    "phase": "love_bombing",
+    "original_line": 95
+  },
+  {
+    "id": "R26",
+    "text": "You have totally changed my outlook in life and I thank you for that. I never thought that someone could love me like you do, but guess what? I love you that much too.",
+    "source": "scam5.txt",
+    "phase": "love_bombing",
+    "original_line": 139
+  },
+  {
+    "id": "R27",
+    "text": "I just want you to know that I had never found someone I wanted to spend the rest of my life with until I met you. I really am crazy about you, everything about you.",
+    "source": "scam1.txt",
+    "phase": "love_bombing",
+    "original_line": 103
+  },
+  {
+    "id": "R28",
+    "text": "Your name repeats over and over in my mind. Each day my love grows stronger for you and I know for a fact that my love will never fade.",
+    "source": "scam3.txt",
+    "phase": "love_bombing",
+    "original_line": 13
+  },
+  {
+    "id": "R29",
+    "text": "I am imagining that great day you will be welcoming me at the airport with lots of hugs and kisses my love. Everyone will see that we are in love.",
+    "source": "scam1.txt",
+    "phase": "love_bombing",
+    "original_line": 143
+  },
+  {
+    "id": "R30",
+    "text": "You are my best friend and the one I want for life, my yesterday, my today and my tomorrow.",
+    "source": "scam3.txt",
+    "phase": "love_bombing",
+    "original_line": 179
+  },
+  {
+    "id": "R31",
+    "text": "I was attacked by armed men on my way to make payments for the shipping of my gemstones this morning. When they attacked, i was injured.",
+    "source": "scam1.txt",
+    "phase": "crisis",
+    "original_line": 155
+  },
+  {
+    "id": "R32",
+    "text": "I got to the western union point i got the money but unfortunately for me immediately some gang of fully armed robbers came inside.",
+    "source": "scam2.txt",
+    "phase": "crisis",
+    "original_line": 27
+  },
+  {
+    "id": "R33",
+    "text": "I am being accused of traveling with a contraband substance. Its like there is this pill i use for dieting and slimming, its actually prescribed for me by my physician.",
+    "source": "scam2.txt",
+    "phase": "crisis",
+    "original_line": 33
+  },
+  {
+    "id": "R34",
+    "text": "i mistakely broke my phone when i was trying to some coffee and i was told it gonna cost me [Amount] to get it fixed when i call Apple.",
+    "source": "scam12.txt",
+    "phase": "crisis",
+    "original_line": 2
+  },
+  {
+    "id": "R35",
+    "text": "I really don't know how to ask you forr this. Can you asisst me or loan me a little buck? I need to take care of somethings.",
+    "source": "scam3.txt",
+    "phase": "crisis",
+    "original_line": 145
+  },
+  {
+    "id": "R36",
+    "text": "my Passport and my other Vital document have been seized by the Hotel manager so i cant leave here without paying for the owe bills.",
+    "source": "scam3.txt",
+    "phase": "crisis",
+    "original_line": 271
+  },
+  {
+    "id": "R37",
+    "text": "I was told to hold my Travellers Allowance Fee this is a token sum of amount that I must have on me before I can be allowed to leave the shoren of the Country.",
+    "source": "scam3.txt",
+    "phase": "crisis",
+    "original_line": 289
+  },
+  {
+    "id": "R38",
+    "text": "i really want to seek for financiall assistance from you. Thats wat i am really scared of asking from you cause i dont know how u will feel about it.",
+    "source": "scam10.txt",
+    "phase": "crisis",
+    "original_line": 3
+  },
+  {
+    "id": "R39",
+    "text": "please you know im living with my nanny here and things are not that ok for us at the moment, we are shortage of food in the house.",
+    "source": "scam12.txt",
+    "phase": "crisis",
+    "original_line": 5
+  },
+  {
+    "id": "R40",
+    "text": "Its my menstruation time and I'm having bleeding disorder and its really paining me. I have spent some money on medications just to get over it but no luck.",
+    "source": "scam12.txt",
+    "phase": "crisis",
+    "original_line": 11
+  },
+  {
+    "id": "R41",
+    "text": "I promise to give you back your money as soon as I am well and back home. Baby, I feel so lonely now and I need you by my side.",
+    "source": "scam1.txt",
+    "phase": "trust_building",
+    "original_line": 157
+  },
+  {
+    "id": "R42",
+    "text": "i want you to know that i am not here to play with your feelings all i am after is for our life to be better when we are together babe.",
+    "source": "scam1.txt",
+    "phase": "trust_building",
+    "original_line": 207
+  },
+  {
+    "id": "R43",
+    "text": "i want you to know that i am a very honest, sincere and a God fearing woman i will never hurt a human being like me in my life.",
+    "source": "scam1.txt",
+    "phase": "trust_building",
+    "original_line": 207
+  },
+  {
+    "id": "R44",
+    "text": "i want you to believe all you doing is rest assured and secured by me and with the power of love.",
+    "source": "scam4.txt",
+    "phase": "trust_building",
+    "original_line": 11
+  },
+  {
+    "id": "R45",
+    "text": "i promise never to let you down. Hope to hear back from you soon. I know you have tried your best and i really appreciate all your efforts so much.",
+    "source": "scam2.txt",
+    "phase": "trust_building",
+    "original_line": 27
+  },
+  {
+    "id": "R46",
+    "text": "Please have faith in us that we can make it through anything, together forever and always.",
+    "source": "scam1.txt",
+    "phase": "trust_building",
+    "original_line": 145
+  },
+  {
+    "id": "R47",
+    "text": "i will be so happy if my help come from you and i know u will be willing to help me out on this. If u cant help me with it cud u borrow me at least i will be willing to pay you back.",
+    "source": "scam10.txt",
+    "phase": "trust_building",
+    "original_line": 19
+  },
+  {
+    "id": "R48",
+    "text": "Honey i want you to know that i do really understand that the money required by the security company for the shipment of the boxes is a bit expensive but i want you to try all your possible best.",
+    "source": "scam1.txt",
+    "phase": "trust_building",
+    "original_line": 247
+  },
+  {
+    "id": "R49",
+    "text": "Well i will like to explain myself clearly to you before we can move on because i believe that we should not hide anything from ourselves.",
+    "source": "scam1.txt",
+    "phase": "trust_building",
+    "original_line": 179
+  },
+  {
+    "id": "R50",
+    "text": "please dont make me loose this money is for me and you. I love u alot my money is urs my life is urs sweety kises.",
+    "source": "scam4.txt",
+    "phase": "trust_building",
+    "original_line": 13
+  }
+];
+
+const SYNTHETIC_SENTENCES = [
+  {
+    "id": "S01",
+    "text": "Hello beautifull I saw your profile and I just had to reach out to you. You have such a lovely smile and i am happy to be the first to write you here.",
+    "matched_to": "R01",
+    "phase": "opening"
+  },
+  {
+    "id": "S02",
+    "text": "I was going through some profiles on here and yours caught my eyes immediately so i just have to say hello to you my dear.",
+    "matched_to": "R02",
+    "phase": "opening"
+  },
+  {
+    "id": "S03",
+    "text": "My name is [Name] i am a military officer stationed in [City] currently serving under the US Armed Forces specialised in field operations.",
+    "matched_to": "R03",
+    "phase": "opening"
+  },
+  {
+    "id": "S04",
+    "text": "I am originally from [City] in the US but now i am base in [City] for my work, i will gladly relocate for the right woman who captures my heart.",
+    "matched_to": "R04",
+    "phase": "opening"
+  },
+  {
+    "id": "S05",
+    "text": "Hi there my name is [Name] and i am reaching out to you about the position you advertize. Is the opportunity still availble?",
+    "matched_to": "R05",
+    "phase": "opening"
+  },
+  {
+    "id": "S06",
+    "text": "I enjoy cooking, swimming, going for long walks on the beach, and just relaxing with good music. I am a simple person who loves the outdoors alot.",
+    "matched_to": "R06",
+    "phase": "opening"
+  },
+  {
+    "id": "S07",
+    "text": "I work as a Mining Engineer for [Company] on there offshore platform, we are locate about 150 miles out in the deep waters.",
+    "matched_to": "R07",
+    "phase": "opening"
+  },
+  {
+    "id": "S08",
+    "text": "I am a honest, faithfull and God fearing man who is searching for a good woman to settle down with and build a beautifull future together.",
+    "matched_to": "R08",
+    "phase": "opening"
+  },
+  {
+    "id": "S09",
+    "text": "I lost my mother when i was still very young and my father raise me all by himself untill he also pass away few years ago. He was a great man.",
+    "matched_to": "R09",
+    "phase": "opening"
+  },
+  {
+    "id": "S10",
+    "text": "I am a very humble and easy going person with a big heart. Some people think am too quiet but when you get to know me i am very warm and loveable.",
+    "matched_to": "R10",
+    "phase": "opening"
+  },
+  {
+    "id": "S11",
+    "text": "I truely believe that God has brought us together for a reason and it was not just by accident that we found each other on this site.",
+    "matched_to": "R11",
+    "phase": "rapport"
+  },
+  {
+    "id": "S12",
+    "text": "In my spare time i enjoy reading books, visiting art galleries, going to the cinema and trying out different resturants with good food.",
+    "matched_to": "R12",
+    "phase": "rapport"
+  },
+  {
+    "id": "S13",
+    "text": "I feel like we have builted a special connection already and there are so many things we have in common that keeps drawing us closer togather.",
+    "matched_to": "R13",
+    "phase": "rapport"
+  },
+  {
+    "id": "S14",
+    "text": "Lately i find myself thinking alot about where this is going between us and what the future holds for us. I cant get you off my mind.",
+    "matched_to": "R14",
+    "phase": "rapport"
+  },
+  {
+    "id": "S15",
+    "text": "Your personality is just so amazing and you have such a great sence of humour. I knew right away that you are someone special to me.",
+    "matched_to": "R15",
+    "phase": "rapport"
+  },
+  {
+    "id": "S16",
+    "text": "i believe that everyone in this world deserves to find true love and happiness, life is too short to be lonely and i know God has a plan for us.",
+    "matched_to": "R16",
+    "phase": "rapport"
+  },
+  {
+    "id": "S17",
+    "text": "Every time i read your messages it sets my heart on fire. You make me feel things i havent felt in a very long time my dear.",
+    "matched_to": "R17",
+    "phase": "rapport"
+  },
+  {
+    "id": "S18",
+    "text": "The moment i started talking to you everything around me changed, the world became more beautifull and i started seeing life in a whole new way.",
+    "matched_to": "R18",
+    "phase": "rapport"
+  },
+  {
+    "id": "S19",
+    "text": "What i truely desire is a woman who is contented with life, someone i can build a home with and we can support each other through thick and thin.",
+    "matched_to": "R19",
+    "phase": "rapport"
+  },
+  {
+    "id": "S20",
+    "text": "i dream of the day when we can take long walks on the beach togather holding hands and watching the beautifull sunset while talking about our dreams.",
+    "matched_to": "R20",
+    "phase": "rapport"
+  },
+  {
+    "id": "S21",
+    "text": "You are the light of my life my angel and i swear to God i will spend every moment making sure you never shed a tear of sadness again \u2764\ufe0f\ud83d\ude18",
+    "matched_to": "R21",
+    "phase": "love_bombing"
+  },
+  {
+    "id": "S22",
+    "text": "My love we are destined to be together, we are not just lovers but we are best friends and soulmates who were ment to find each other in this life \ud83d\udc95",
+    "matched_to": "R22",
+    "phase": "love_bombing"
+  },
+  {
+    "id": "S23",
+    "text": "When i think of you my heart skips a beat and i feel like am floating on the clouds. You have completly capturred my heart and soul.",
+    "matched_to": "R23",
+    "phase": "love_bombing"
+  },
+  {
+    "id": "S24",
+    "text": "I dont have enough words to tell you how greatful i am to have you in my life. You always know the right thing to say to make me smile \ud83d\ude4f",
+    "matched_to": "R24",
+    "phase": "love_bombing"
+  },
+  {
+    "id": "S25",
+    "text": "Every night i close my eyes and imagine you laying beside me with your head on my chest and i can feel your heart beating next to mine \u2764\ufe0f",
+    "matched_to": "R25",
+    "phase": "love_bombing"
+  },
+  {
+    "id": "S26",
+    "text": "Since you came into my life everything has changed for the better. No one has ever loved me the way you do and i love you just as much my queen \ud83d\ude18",
+    "matched_to": "R26",
+    "phase": "love_bombing"
+  },
+  {
+    "id": "S27",
+    "text": "Before i met you i thought i would never find my true love but now i know you are the one i have been searching for my whole entire life.",
+    "matched_to": "R27",
+    "phase": "love_bombing"
+  },
+  {
+    "id": "S28",
+    "text": "I think about you every single second of the day, your face is always in my mind and my love for you just keeps getting strongger and strongger.",
+    "matched_to": "R28",
+    "phase": "love_bombing"
+  },
+  {
+    "id": "S29",
+    "text": "I cant wait for that blessed day when i will see you at the airport and run into your arms, the whole world will know that we belong togather \ud83d\ude18\u2764\ufe0f",
+    "matched_to": "R29",
+    "phase": "love_bombing"
+  },
+  {
+    "id": "S30",
+    "text": "You are my everything, my confidant, my partner, my reason for waking up each morning and going to sleep with a smile on my face.",
+    "matched_to": "R30",
+    "phase": "love_bombing"
+  },
+  {
+    "id": "S31",
+    "text": "Honey something terrible happened today, some thieves attacked me when i was going to the bank to make the payment for my goods. They took everything.",
+    "matched_to": "R31",
+    "phase": "crisis"
+  },
+  {
+    "id": "S32",
+    "text": "I went to collect the money you sent at the western union but when i was coming out of there some robbers followed me and took the money from me at gunpoint.",
+    "matched_to": "R32",
+    "phase": "crisis"
+  },
+  {
+    "id": "S33",
+    "text": "Babe am in serious trouble right now the customs officers are saying i was traveling with some illegal substance but its just my prescribtion medication i swear.",
+    "matched_to": "R33",
+    "phase": "crisis"
+  },
+  {
+    "id": "S34",
+    "text": "My laptop fell and broke today and the repair shop is saying it will cost [Amount] to fix it. I dont have that kind of money right now honey am so stressed.",
+    "matched_to": "R34",
+    "phase": "crisis"
+  },
+  {
+    "id": "S35",
+    "text": "I hate to have to ask you this but i really need some financial help right now. Please dont be mad at me i just dont have anyone else to turn to.",
+    "matched_to": "R35",
+    "phase": "crisis"
+  },
+  {
+    "id": "S36",
+    "text": "The hotel managment has confiscated my travel documents because i owe them for the room and they said i cannot leave untill i pay the outstandng balance.",
+    "matched_to": "R36",
+    "phase": "crisis"
+  },
+  {
+    "id": "S37",
+    "text": "The immigration officer told me i need to show a Basic Transport Allowance of [Amount] before they will allow me to board the flight out of this country.",
+    "matched_to": "R37",
+    "phase": "crisis"
+  },
+  {
+    "id": "S38",
+    "text": "I am really embarased to be asking you for money but am in a desperrate situation right now and i dont want you to think am using you i swear to God.",
+    "matched_to": "R38",
+    "phase": "crisis"
+  },
+  {
+    "id": "S39",
+    "text": "Things are very tough for me and my aunty right now we dont even have food in the house and i am to ashamed to tell anyone about our situation \ud83d\ude4f",
+    "matched_to": "R39",
+    "phase": "crisis"
+  },
+  {
+    "id": "S40",
+    "text": "Honey i am sick right now with a stomack problem and the doctor is asking for [Amount] for the treatment but i have already used all the money i had.",
+    "matched_to": "R40",
+    "phase": "crisis"
+  },
+  {
+    "id": "S41",
+    "text": "I swear on my mothers grave i will pay you back every penny as soon as i arrive there. Please believe me my love i am all alone here and i need you \ud83d\ude4f",
+    "matched_to": "R41",
+    "phase": "trust_building"
+  },
+  {
+    "id": "S42",
+    "text": "Baby i would never do anything to hurt you or play games with your heart, all i want is for us to be togather and start our new life as one.",
+    "matched_to": "R42",
+    "phase": "trust_building"
+  },
+  {
+    "id": "S43",
+    "text": "I want you to know that i am a sincere and God fearing person. I have never lied to you and i will never do such a thing may God strike me down if i lie.",
+    "matched_to": "R43",
+    "phase": "trust_building"
+  },
+  {
+    "id": "S44",
+    "text": "Everything i am doing is for us my love. Trust me on this one i promise you that everything is safe and secure and there is nothing to worry about.",
+    "matched_to": "R44",
+    "phase": "trust_building"
+  },
+  {
+    "id": "S45",
+    "text": "I appreciate everything you have done for me and i will never dissapoint you i promise. You are such a wonderfull person and God will bless you abundantly.",
+    "matched_to": "R45",
+    "phase": "trust_building"
+  },
+  {
+    "id": "S46",
+    "text": "Please just have a little faith in me and in us my love, we will get through this togather and our love will only be strongger on the other side \ud83d\ude4f\u2764\ufe0f",
+    "matched_to": "R46",
+    "phase": "trust_building"
+  },
+  {
+    "id": "S47",
+    "text": "If you can just lend me the money i promise on everything i hold dear i will return it back to you with interest as soon as my situation improve my love.",
+    "matched_to": "R47",
+    "phase": "trust_building"
+  },
+  {
+    "id": "S48",
+    "text": "I know the amount is alot of money my love but please try your very best to find a way because this is the only thing standing between us being togather.",
+    "matched_to": "R48",
+    "phase": "trust_building"
+  },
+  {
+    "id": "S49",
+    "text": "I want to be completely transparent with you about everything in my life because i believe a relationship without honesty and trust is nothing at all.",
+    "matched_to": "R49",
+    "phase": "trust_building"
+  },
+  {
+    "id": "S50",
+    "text": "Please my love dont let this opportunity pass us by, this money is for our future togather. I love you so much and everything i have is yours sweety \ud83d\ude18",
+    "matched_to": "R50",
+    "phase": "trust_building"
+  }
+];
+
+const CATCH_TRIALS = [
+  {
+    "id": "C01",
+    "text": "Please ensure all quarterly reports are submitted by end of business Friday.",
+    "type": "obvious_non_scam",
+    "category": "corporate_email"
+  },
+  {
+    "id": "C02",
+    "text": "Preheat the oven to 180 degrees Celsius and line a baking tray with parchment paper before mixing the dry ingredients.",
+    "type": "obvious_non_scam",
+    "category": "recipe"
+  },
+  {
+    "id": "C03",
+    "text": "Scattered showers are expected throughout the afternoon with temperatures reaching a high of 24 degrees in the southeast.",
+    "type": "obvious_non_scam",
+    "category": "weather_report"
+  },
+  {
+    "id": "C04",
+    "text": "Having carefully considered the trajectory of our relationship, I believe we have reached a juncture where mutual trust warrants a deeper commitment, and I would therefore appreciate your cooperation in facilitating a monetary transaction.",
+    "type": "obvious_ai_scam",
+    "category": "too_polished"
+  },
+  {
+    "id": "C05",
+    "text": "I must confess that since the commencement of our correspondence, I have developed a profound emotional attachment to you and would like to request your financial assistance with a matter of great personal significance.",
+    "type": "obvious_ai_scam",
+    "category": "too_polished"
+  }
+];
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  prolificPid: new URLSearchParams(location.search).get('PROLIFIC_PID') || '',
+  studyId: new URLSearchParams(location.search).get('STUDY_ID') || '',
+  sessionId: new URLSearchParams(location.search).get('SESSION_ID') || '',
+  startTime: null,
+  currentPage: 0,
+  trials: [],        // all 17 trial objects (15 real pairs + 2 catch pairs)
+  trialPageStart: 0, // timestamp when current trial page was rendered
+  responses: {
+    consent: false,
+    screening: null,
+    trials: [],       // per-trial response objects
+    questionnaire: {}
+  }
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+// Build a lookup from real ID -> synthetic sentence
+const synthByReal = {};
+SYNTHETIC_SENTENCES.forEach(s => { synthByReal[s.matched_to] = s; });
+
+// ============================================================
+// TRIAL SELECTION
+// ============================================================
+function buildTrials() {
+  const phases = ['opening', 'rapport', 'love_bombing', 'crisis', 'trust_building'];
+  const trials = [];
+
+  // For each phase, pick 3 random real sentences (and their matched synthetic)
+  phases.forEach(phase => {
+    const realForPhase = shuffle(REAL_SENTENCES.filter(r => r.phase === phase));
+    const picked = realForPhase.slice(0, 3);
+    picked.forEach(real => {
+      const synth = synthByReal[real.id];
+      if (!synth) return;
+      const realIsA = Math.random() < 0.5;
+      trials.push({
+        type: 'pair',
+        pairId: real.id + '-' + synth.id,
+        phase: phase,
+        realId: real.id,
+        synthId: synth.id,
+        realText: real.text,
+        synthText: synth.text,
+        sentenceA: realIsA ? real.text : synth.text,
+        sentenceB: realIsA ? synth.text : real.text,
+        realPosition: realIsA ? 'A' : 'B',
+        isCatch: false
+      });
+    });
+  });
+
+  // Build 2 catch trial pairs: pair a real scam sentence with an obvious non-scam
+  const usedRealIds = new Set(trials.map(t => t.realId));
+  const availableReal = shuffle(REAL_SENTENCES.filter(r => !usedRealIds.has(r.id)));
+  const nonScamCatches = shuffle(CATCH_TRIALS.filter(c => c.type === 'obvious_non_scam'));
+
+  for (let i = 0; i < 2 && i < nonScamCatches.length && i < availableReal.length; i++) {
+    const real = availableReal[i];
+    const catchSentence = nonScamCatches[i];
+    const realIsA = Math.random() < 0.5;
+    trials.push({
+      type: 'catch',
+      pairId: real.id + '-' + catchSentence.id,
+      phase: real.phase,
+      realId: real.id,
+      catchId: catchSentence.id,
+      realText: real.text,
+      catchText: catchSentence.text,
+      sentenceA: realIsA ? real.text : catchSentence.text,
+      sentenceB: realIsA ? catchSentence.text : real.text,
+      realPosition: realIsA ? 'A' : 'B',
+      isCatch: true,
+      catchCategory: catchSentence.category
+    });
+  }
+
+  return shuffle(trials);
+}
+
+function initStudy() {
+  state.trials = buildTrials();
+}
+
+// ============================================================
+// PAGE STRUCTURE
+// consent(1) + screening(1) + trials(N) + questionnaire(1) + debrief(1)
+// ============================================================
+const PHASE_LABELS = {
+  opening: 'Opening / Identity',
+  rapport: 'Rapport Building',
+  love_bombing: 'Love Bombing',
+  crisis: 'Crisis / Extraction',
+  trust_building: 'Trust Building'
+};
+
+function totalPages() {
+  return 1 + 1 + state.trials.length + 1 + 1;
+}
+
+function progress() {
+  return Math.round((state.currentPage / (totalPages() - 1)) * 100);
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+const app = document.getElementById('app');
+
+function render() {
+  const p = state.currentPage;
+  if (p === 0) return renderConsent();
+  if (p === 1) return renderScreening();
+
+  const trialStart = 2;
+  const trialEnd = trialStart + state.trials.length;
+  if (p >= trialStart && p < trialEnd) {
+    return renderTrial(p - trialStart);
+  }
+
+  if (p === trialEnd) return renderQuestionnaire();
+  return renderDebrief();
+}
+
+function bar() {
+  return '<div class="progress-bar"><div class="progress-fill" style="width:' + progress() + '%"></div></div>';
+}
+
+// ---- Consent ----
+function renderConsent() {
+  app.innerHTML = '\
+    <h1>Welcome to this research study</h1>\
+    <p>You will see <strong>pairs</strong> of sentences from WhatsApp conversations.\
+    In each pair, one sentence is from a <strong>REAL</strong> scam report collected\
+    from victims. The other was <strong>GENERATED by AI</strong> to simulate scam language.</p>\
+    <p><strong>Your task:</strong> For each pair, decide which sentence is the real one.</p>\
+    <p>This study takes approximately <strong>10 minutes</strong>.</p>\
+    <div class="warning">\
+      <strong>Content note:</strong> The content includes manipulative language such as\
+      false declarations of love, fabricated emergencies, and requests for money.\
+      If you find this content distressing, you may withdraw at any time.\
+    </div>\
+    <button class="btn" onclick="giveConsent()">I consent and wish to proceed</button>\
+  ';
+}
+
+function giveConsent() {
+  state.responses.consent = true;
+  state.startTime = Date.now();
+  state.currentPage = 1;
+  render();
+}
+
+// ---- Screening ----
+function renderScreening() {
+  app.innerHTML = bar() + '\
+    <h2>Screening Question</h2>\
+    <p>Have you ever personally received a suspicious message from a stranger online\
+    who appeared to be trying to build a romantic relationship?</p>\
+    <div class="radio-group">\
+      <label><input type="radio" name="screening" value="yes"><span>Yes</span></label>\
+      <label><input type="radio" name="screening" value="no"><span>No</span></label>\
+      <label><input type="radio" name="screening" value="unsure"><span>Unsure</span></label>\
+    </div>\
+    <button class="btn" onclick="submitScreening()">Continue</button>\
+  ';
+}
+
+function submitScreening() {
+  var v = document.querySelector('input[name="screening"]:checked');
+  if (!v) return alert('Please select an answer.');
+  state.responses.screening = v.value;
+  state.currentPage = 2;
+  state.trialPageStart = Date.now();
+  render();
+}
+
+// ---- Trial (paired comparison) ----
+function renderTrial(idx) {
+  var trial = state.trials[idx];
+  var num = idx + 1;
+  var total = state.trials.length;
+
+  app.innerHTML = bar() +
+    '<div class="page-counter">Pair ' + num + ' of ' + total + '</div>' +
+    '<p>Both sentences below are from the same type of scam conversation. ' +
+    'One is from a <strong>REAL scammer</strong>. The other was <strong>GENERATED by AI</strong>.</p>' +
+    '<p><strong>Which is the real one?</strong></p>' +
+
+    '<div class="sentence-box">' +
+      '<span class="label">Sentence A</span>' +
+      '<span class="text">\u201c' + escapeHtml(trial.sentenceA) + '\u201d</span>' +
+    '</div>' +
+    '<div class="sentence-box">' +
+      '<span class="label">Sentence B</span>' +
+      '<span class="text">\u201c' + escapeHtml(trial.sentenceB) + '\u201d</span>' +
+    '</div>' +
+
+    '<div class="radio-group">' +
+      '<label><input type="radio" name="pair" value="A"><span>A is the real one</span></label>' +
+      '<label><input type="radio" name="pair" value="B"><span>B is the real one</span></label>' +
+      '<label><input type="radio" name="pair" value="cant_tell"><span>I genuinely can\'t tell</span></label>' +
+    '</div>' +
+
+    '<hr class="divider">' +
+
+    '<p><strong>How confident are you?</strong></p>' +
+    '<div class="radio-group">' +
+      '<label><input type="radio" name="conf" value="very_confident"><span>Very confident</span></label>' +
+      '<label><input type="radio" name="conf" value="somewhat_confident"><span>Somewhat confident</span></label>' +
+      '<label><input type="radio" name="conf" value="guessing"><span>Guessing</span></label>' +
+    '</div>' +
+
+    '<button class="btn" onclick="submitTrial(' + idx + ')">Next</button>';
+
+  state.trialPageStart = Date.now();
+}
+
+function submitTrial(idx) {
+  var pairVal = document.querySelector('input[name="pair"]:checked');
+  var confVal = document.querySelector('input[name="conf"]:checked');
+  if (!pairVal || !confVal) return alert('Please answer both questions.');
+
+  var trial = state.trials[idx];
+  var response = pairVal.value;
+  var correct = response === trial.realPosition;
+  var responseTimeMs = Date.now() - state.trialPageStart;
+
+  state.responses.trials.push({
+    trial_index: idx,
+    pair_id: trial.pairId,
+    phase: trial.phase,
+    real_id: trial.realId,
+    synth_or_catch_id: trial.isCatch ? trial.catchId : trial.synthId,
+    real_position: trial.realPosition,
+    response: response,
+    correct: response === 'cant_tell' ? null : correct,
+    is_cant_tell: response === 'cant_tell',
+    confidence: confVal.value,
+    response_time_ms: responseTimeMs,
+    is_catch: trial.isCatch
+  });
+
+  state.currentPage++;
+  render();
+}
+
+// ---- Questionnaire ----
+function renderQuestionnaire() {
+  app.innerHTML = bar() +
+    '<h2>Final Questions</h2>' +
+
+    '<p><strong>What cues did you use to decide which sentence was real?</strong> ' +
+    '(Select all that apply)</p>' +
+    '<div class="checkbox-group">' +
+      '<label><input type="checkbox" name="cue" value="spelling_grammar">Spelling or grammar errors</label>' +
+      '<label><input type="checkbox" name="cue" value="emotional_intensity">Emotional intensity or exaggeration</label>' +
+      '<label><input type="checkbox" name="cue" value="specific_details">Specific details (names, places, amounts)</label>' +
+      '<label><input type="checkbox" name="cue" value="sentence_structure">Sentence structure or flow</label>' +
+      '<label><input type="checkbox" name="cue" value="emoji">Use of emoji</label>' +
+      '<label><input type="checkbox" name="cue" value="religious_references">Religious references</label>' +
+      '<label><input type="checkbox" name="cue" value="felt_authentic">It just &quot;felt&quot; more authentic</label>' +
+      '<label><input type="checkbox" name="cue" value="ai_too_polished">The AI version felt too polished or perfect</label>' +
+      '<label><input type="checkbox" name="cue" value="other">Other:</label>' +
+      '<input type="text" id="cueOther" placeholder="Please describe...">' +
+    '</div>' +
+
+    '<p><strong>How difficult was this task?</strong></p>' +
+    '<div class="likert-row">' +
+      '<label><input type="radio" name="difficulty" value="1"><span>1 - Very easy</span></label>' +
+      '<label><input type="radio" name="difficulty" value="2"><span>2</span></label>' +
+      '<label><input type="radio" name="difficulty" value="3"><span>3</span></label>' +
+      '<label><input type="radio" name="difficulty" value="4"><span>4</span></label>' +
+      '<label><input type="radio" name="difficulty" value="5"><span>5 - Very difficult</span></label>' +
+    '</div>' +
+
+    '<p><strong>What is your age range?</strong></p>' +
+    '<div class="radio-group">' +
+      '<label><input type="radio" name="age" value="18-24"><span>18-24</span></label>' +
+      '<label><input type="radio" name="age" value="25-34"><span>25-34</span></label>' +
+      '<label><input type="radio" name="age" value="35-44"><span>35-44</span></label>' +
+      '<label><input type="radio" name="age" value="45-54"><span>45-54</span></label>' +
+      '<label><input type="radio" name="age" value="55-64"><span>55-64</span></label>' +
+      '<label><input type="radio" name="age" value="65+"><span>65+</span></label>' +
+    '</div>' +
+
+    '<p><strong>What is your gender?</strong></p>' +
+    '<div class="radio-group">' +
+      '<label><input type="radio" name="gender" value="Male"><span>Male</span></label>' +
+      '<label><input type="radio" name="gender" value="Female"><span>Female</span></label>' +
+      '<label><input type="radio" name="gender" value="Non-binary"><span>Non-binary</span></label>' +
+      '<label><input type="radio" name="gender" value="Prefer not to say"><span>Prefer not to say</span></label>' +
+    '</div>' +
+
+    '<button class="btn" onclick="submitQuestionnaire()">Submit</button>';
+}
+
+function submitQuestionnaire() {
+  var diff = document.querySelector('input[name="difficulty"]:checked');
+  var age = document.querySelector('input[name="age"]:checked');
+  var gender = document.querySelector('input[name="gender"]:checked');
+  if (!diff || !age || !gender) return alert('Please answer all required questions.');
+
+  var cueEls = document.querySelectorAll('input[name="cue"]:checked');
+  var cues = [];
+  for (var i = 0; i < cueEls.length; i++) cues.push(cueEls[i].value);
+  var cueOther = document.getElementById('cueOther').value.trim();
+
+  state.responses.questionnaire = {
+    cues: cues,
+    cues_other: cueOther,
+    difficulty: parseInt(diff.value),
+    age_range: age.value,
+    gender: gender.value
+  };
+
+  submitData();
+  state.currentPage++;
+  render();
+}
+
+// ---- Debrief ----
+function renderDebrief() {
+  var code = 'SCAM-VAL-' + generateCode();
+  var mins = Math.round((Date.now() - state.startTime) / 60000);
+
+  app.innerHTML =
+    '<h1>Thank you for participating!</h1>' +
+    '<p>This study is part of research into detecting romance scams using AI. ' +
+    'Your responses help us validate whether AI-generated training data is ' +
+    'realistic enough to train a scam detection system.</p>' +
+    '<p>No real personal information from scam victims was used &mdash; all ' +
+    'identifying details were removed.</p>' +
+
+    '<p><strong>If you or someone you know has been affected by a romance scam:</strong></p>' +
+    '<ul class="resource-list">' +
+      '<li><strong>Singapore:</strong> ScamShield helpline 1799</li>' +
+      '<li><strong>UK:</strong> Action Fraud 0300 123 2040</li>' +
+      '<li><strong>US:</strong> FTC reportfraud.ftc.gov</li>' +
+      '<li><strong>Australia:</strong> Scamwatch scamwatch.gov.au</li>' +
+    '</ul>' +
+
+    '<p>Your Prolific completion code is:</p>' +
+    '<div class="completion-code">' + code + '</div>' +
+    '<p style="color:#6b7280;font-size:0.9rem;">Time taken: ~' + mins + ' minute' + (mins !== 1 ? 's' : '') + '</p>';
+}
+
+// ============================================================
+// DATA SUBMISSION
+// ============================================================
+function buildPayload() {
+  var endTime = Date.now();
+  var durationSec = Math.round((endTime - state.startTime) / 1000);
+  var trials = state.responses.trials;
+
+  // Quality flags
+  var catchTrials = trials.filter(function(t) { return t.is_catch; });
+  var catchWrong = catchTrials.filter(function(t) { return !t.is_cant_tell && !t.correct; }).length;
+
+  var nonCatch = trials.filter(function(t) { return !t.is_catch; });
+  var aCount = nonCatch.filter(function(t) { return t.response === 'A'; }).length;
+  var bCount = nonCatch.filter(function(t) { return t.response === 'B'; }).length;
+  var ctCount = nonCatch.filter(function(t) { return t.response === 'cant_tell'; }).length;
+  var total = nonCatch.length;
+  var monotonic = total > 0 && (
+    aCount / total > 0.85 || bCount / total > 0.85 || ctCount / total > 0.85
+  );
+
+  return {
+    prolific_id: state.prolificPid,
+    study_id: state.studyId,
+    session_id: state.sessionId,
+    start_time: new Date(state.startTime).toISOString(),
+    end_time: new Date(endTime).toISOString(),
+    duration_seconds: durationSec,
+    scam_experience: state.responses.screening,
+    flags: {
+      catch_trial_failures: catchWrong,
+      flag_catch: catchWrong >= 1,
+      flag_speed: durationSec < 180,
+      flag_monotonic: monotonic,
+      excluded: (catchWrong >= 1) || (durationSec < 180) || monotonic
+    },
+    trials: state.responses.trials,
+    questionnaire: state.responses.questionnaire
+  };
+}
+
+function submitData() {
+  var payload = buildPayload();
+
+  // LocalStorage backup
+  try {
+    var existing = JSON.parse(localStorage.getItem('scam_validation_responses') || '[]');
+    existing.push(payload);
+    localStorage.setItem('scam_validation_responses', JSON.stringify(existing));
+  } catch (e) {}
+
+  // POST to API if configured
+  var API_URL = window.SCAM_VALIDATION_API_URL || '';
+  if (API_URL) {
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(function(err) { console.error('Submit failed:', err); });
+  }
+
+  console.log('=== PARTICIPANT DATA ===');
+  console.log(JSON.stringify(payload, null, 2));
+}
+
+// ============================================================
+// INIT
+// ============================================================
+initStudy();
+render();
+</script>
+
+</body>
+</html>
